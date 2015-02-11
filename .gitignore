@@ -8,3 +8,7 @@ css/reveal.min.css
 js/reveal.min.js
 .idea*
 *.iml
+project
+*~
+target
+out
