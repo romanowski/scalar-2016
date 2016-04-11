@@ -9,6 +9,10 @@ object SBTIncrementalCompiler {
 
   case class API(source: File, hash: Hash)
 
+  case class NamedAPI(source: File, hashes: Map[String,Hash])
+
+
+
   def compile(compilation: Compilation): Unit ={
     var changed = changedSources(compilation)
 
@@ -46,48 +50,77 @@ object SBTIncrementalCompiler {
 
   class SourceListener{
     private var _apis: Set[API] = Set.empty
-    private var _dependencies: Map[File, File] = Map.empty
+    private var _dependencies: Map[File, Set[File]] = Map.empty
 
     def process(unit: CompilationUnit): Unit = {
-      val topLevelHashes = unit.topLevelMember.map(hashTopLevel)
-      _apis +=  API(unit.source, aggregate(topLevelHashes))
 
-      val allDeps = unit.topLevelMember.flatMap(dependeciesFromTopLevel)
+      // Compute hashes
+      val unitTraverser = new HashingTraverser
+      unitTraverser.traverse(unit.tree)
 
-      _dependencies ++= allDeps.map(unit.source -> _)
+      _apis +=  API(unit.source, unitTraverser.unitHash)
+
+      // Compute dependencies
+      val depsTraverser = new DepsTraverser
+      depsTraverser.traverse(unit.tree)
+
+      _dependencies += (unit.source -> depsTraverser.dependecies)
     }
-
-    def hashTopLevel(topLevel: TopLevelMember): Hash ={
-      val signatureHash = hash(topLevel.signature)
-      val membersHash = topLevel.members.map(m => hash(m.signature))
-
-      aggregate(signatureHash +: membersHash)
-    }
-
-    def dependeciesFromTopLevel(topLevel: TopLevelMember): Set[File] =
-      topLevel.members.foldLeft(findDependecies(topLevel.signature)){
-        case (current, member) =>
-          member.usedInBody.foldLeft(current ++ findDependecies(member.signature)){
-            _ ++ findDependecies(_)
-          }
-      }
 
     def apis: Seq[API] = _apis.toSeq
-    def dependencies: Map[File, File] = _dependencies
+    def dependencies: Map[File, Set[File]] = _dependencies
+  }
+
+  trait TreeTraverser {
+    def traverse(tree: Tree): Unit
+  }
+
+  class HashingTraverser extends TreeTraverser {
+    var unitHash = EmptyHash
+
+    override def traverse(tree: Tree): Unit = tree match{
+      case ClassTree(signature, members) =>
+        unitHash.hash(signature)
+        members.foreach(traverse)
+      case  Method(signature, body) =>
+        unitHash.hash(signature)
+        traverse(body)
+      //  ...
+    }
+  }
+
+  class DepsTraverser extends TreeTraverser {
+    var dependecies: Set[File] = Set.empty
+
+    override def traverse(tree: Tree): Unit = tree match{
+      case ClassTree(signature, members) =>
+        dependecies += signature.declaredIn
+        members.foreach(traverse)
+      case  Method(signature, body) =>
+        dependecies += signature.declaredIn
+        traverse(body)
+      case Operation(tpe, _) =>
+        dependecies += tpe.declaredIn
+      // ...
+    }
   }
 
 
-  case class CompilationUnit(source: File, topLevelMember: Seq[TopLevelMember])
+  trait Tree
 
-  case class TopLevelMember(signature: TypeSignature, members: Seq[Member])
+  case class ClassTree(signature: Type, members: Seq[Tree])
 
-  case class Member(signature: TypeSignature, usedInBody: Seq[TypeSignature])
+  case class Type(signature: String){
+    def declaredIn: File = ???
+  }
 
-  class TypeSignature
+  case class Method(signature: Type, body: Tree)
 
-  def findDependecies(signature: TypeSignature): Set[File] = ???
+  case class Operation(from: Type, code: String)
 
-  def updateDependecies(deps: Map[File, File]): Unit = ???
+  case class CompilationUnit(source: File, tree: Tree)
+
+  def updateDependecies(deps: Map[File, Set[File]]): Unit = ???
 
   def runScalac(listner: SourceListener) = ???
 
@@ -105,5 +138,9 @@ object SBTIncrementalCompiler {
 
   def allDependecies(file: File): Seq[File] = ???
 
-  type Hash = Long
+  class Hash{
+    def hash(a: Any): Hash = ???
+  }
+
+  val EmptyHash: Hash = ???
 }
