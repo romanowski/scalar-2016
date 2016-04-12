@@ -424,7 +424,6 @@
 
 			<section data-markdown>
 				<script type="text/template">
-
 				```scala
 				var dependecies: Set[File] = Set.empty
 
@@ -440,16 +439,17 @@
 
 			<section data-markdown>
 				<script type="text/template">
+					```scala
+					def isAffected(changedAPI: Seq[File, Set[String],
+								   source: File): Boolean = {
+						changedAPI.find {
+							case (changedSource, changedNames) =>
+								def useChangedNames =
+									(usedNames(source) & changedNames).isDefined
 
-				```scala
-				def isAffected(changedAPI: Seq[File, Set[String], source: File): Boolean = {
-					changedAPI.find{
-						case (changedSource, changedNames) =>
-							def useChangedNames = (usedNames(source) & changedNames).isDefined
-
-							isDependency(source, changedSource) && useChangedNames
+								isDependency(source, changedSource) && useChangedNames
+						}
 					}
-				}
 				```
 
 				</script>
@@ -590,19 +590,20 @@
 				// yields same javap output as
 
 				class Generic[E[V] <: Seq[V]]
-				                      ```
+				```
 
-				                      ```
-				                      public class romanowski.changes.Generic
-				<E extends scala.collection.Seq<java.lang.Object>> {
+				```
+				public class romanowski.changes.Generic
+					<E extends scala.collection.Seq<java.lang.Object>> {
+
 					public romanowski.changes.Generic();
 
 					Code:
 					0: aload_0
 					1: invokespecial #13  // Method java/lang/Object."<init>":()V
-						4: return
-						}
-						```
+					4: return
+				}
+				```
 				</script>
 			</section>
 
@@ -613,32 +614,6 @@
 				<!-- TODO example-->
 				</script>
 			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				## scala compiler plugin?
-
-				Create new phase and traverse and hash all non-private member using trees and symbols from compiler.
-
-				#### What can go wrong here?
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				```
-				do
-				// Done - detect changed hashes of source or non-private api
-				Detect changes
-				// TODO
-				Select affected subset of sources
-				// Done - scalac.compile(sources)
-				Compile affected sources
-				while there are changes to process
-				```
-				</script>
-			</section>
-
 
 			<section data-markdown>
 				<script type="text/template">
@@ -661,9 +636,9 @@
 				```scala
 				// Implicits.scala
 				class Implicits(i: Int) {
-				implicit class FooBarOps(from: FooImpl[_]){
-				def fooBar = 1
-				}
+					implicit class FooBarOps(from: FooImpl[_]){
+						def fooBar = 1
+					}
 				}
 
 				// FooImpl.scala
@@ -671,9 +646,9 @@
 
 				// Baz.scala
 				class Baz {
-				val foo = new FooImpl[Bar]
+					val foo = new FooImpl[Bar]
 
-				foo.fooBar
+					foo.fooBar
 				}
 
 
@@ -721,31 +696,6 @@
 				Do we want to reimplement compiler?
 				</script>
 			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				## Scala reflect - FTW?
-
-				Instead of reimplementing we cal actually call compiler.
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				```
-				do
-				// Done: detect changed hashes of source or non-private apo
-				Detect changes
-				// Done: Traverse tree and add all sources for all used symbols
-				Select affected subset of sources
-				// Done: scalac.compile(sources)
-				Compile affected sources
-				while there are changes to process
-				```
-				</script>
-			</section>
-
-
 		</section>
 
 		<!-- ################################################################################################################ -->
