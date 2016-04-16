@@ -114,28 +114,6 @@
 				</script>
 			</section>
 
-
-			<section data-markdown>
-				<script type="text/template">
-				Inner source -> source dependencies in TODO
-
-				TODO graph
-
-				[github.com/romanowski/tomograph](https://github.com/romanowski/tomograph)
-				</script>
-			</section>
-
-
-			<section data-markdown>
-				<script type="text/template">
-				Inner source -> source dependencies in TODO
-
-				TODO graph
-
-				[github.com/romanowski/tomograph](https://github.com/romanowski/tomograph)
-				</script>
-			</section>
-
 			<section data-markdown>
 				<script type="text/template">
 				Incremental compilers for Scala?
@@ -209,46 +187,6 @@
 					val room: String = team.room // this must fail
 				}
 				```
-
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				Can incremental compilation be *slower* then full build?
-
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				```scala
-				//TODO - check!!!
-				object A { def a1 = 1 } // A.scala
-
-				object B { def b1 = A.a1 } // B.scala
-
-				object C { def c1 = B.b1 } // C.scala
-
-				object D { def d1 = C.c1 } // D.scala
-
-				```
-
-				```
-				[info] Compiling 1 Scala source
-				[info] Compiling 2 Scala sources
-				[info] Compiling 2 Scala sources
-				[info] Compiling 4 Scala sources
-				```
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				SBT Heuristics (recompile all if):
-
-				1. Asked to compile more then X% of sources
-				2. Yth cycle is started
 
 				</script>
 			</section>
@@ -475,27 +413,13 @@
 
 			<section data-markdown>
 				<script type="text/template">
-				TODO class-based example
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
 				# Speed vs. Precision
 				</script>
 			</section>
 
 			<section data-markdown>
 				<script type="text/template">
-				TODO Intellij example
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
 				# Speed-up your incremental compilation
-
-				in 3 steps
 				</script>
 			</section>
 
@@ -504,7 +428,20 @@
 				# Provide return types
 
 				```scala
-				TODO Example
+				val it = Seq("Adam", "Marcin")
+				val hr = Seq("Ola", "Ala")
+
+				class TeamMember(name: String, team: String)
+				def allTeamMembers: Seq[TeamMember] = ???...
+
+				//This is Seq[Seq[String]]
+				def teams = Seq(it, hr)
+
+				//This is Iterable[Seq[String]]
+				def teams = allTeamMembers.groupBy(_.team).map {
+					case (_, usersInTeam) =>
+						usersInTeam.map(_.name)
+				}
 				```
 				</script>
 			</section>
@@ -512,21 +449,7 @@
 
 			<section data-markdown>
 				<script type="text/template">
-				# One file - few classes
-
-				```scala
-				TODO Example
-				```
-				</script>
-			</section>
-
-			<section data-markdown>
-				<script type="text/template">
-				# Less wildcard imports
-
-				```scala
-				TODO Example
-				```
+				## One file - few classes
 				</script>
 			</section>
 		</section>
